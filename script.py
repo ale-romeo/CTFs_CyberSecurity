@@ -1,43 +1,29 @@
-#!/usr/bin/env python3
-
-# Importa la libreria di pwntools
 from pwn import *
-
+from string import printable
 
 def main():
-    '''
-    remote(hostname, port) apre una socket e ritorna un object
-    che può essere usato per inviare e ricevere dati sulla socket  
-    '''
-    HOST = "hostname"
-    PORT = 1234
-    r = remote(HOST, PORT)
+    r = remote("benchmark.challs.cyberchallenge.it", 9031)
+    r.recvuntil(b":")
+    flag = "CCIT{"
+    r.sendline(flag)
+    ans = r.recvuntil(b"cycles").decode().split()
+    count = int(ans[4])
+    r.recvuntil(b":")
 
-    # .send() può essere invocato sull'oggetto ritornato da remote() per inviare dati
-    r.send(b"Ciao!")
+    while True:
+        for _ in printable:
+            temp = flag + str(_)
+            r.sendline(temp)
+            ans = r.recvuntil(b"cycles").decode().split()
+            tempcount = int(ans[4])
+            print(tempcount, temp)
+            flag = temp
+            count = tempcount
+            r.recvuntil(b":")
 
-    # .sendline() è identico a .send(), però appende un newline dopo i dati
-    r.sendline(b"Ciao!")
 
-    # .sendafter() e .sendlineafter() inviano la stringa "Ciao!"
-    r.sendafter(b"something", b"Ciao!")
-
-    # solo dopo che viene ricevuta la stringa "something"
-    r.sendlineafter(b"something", b"Ciao!")
-
-    # .recv() riceve e ritorna al massimo 1024 bytes dalla socket
-    data = r.recv(1024)
-
-    # .recvline() legge dalla socket fino ad un newline
-    data = r.recvline()
-
-    # .recvuntil() legge dalla socket finchè non viene incontrata la stringa "something"
-    data = r.recvuntil(b"something")
-
-    # permette di interagire con la connessione direttamente dalla shell
-    r.interactive()
-
-    # chiude la socket
+        r.recvuntil(b":")
+        
     r.close()
 
 
