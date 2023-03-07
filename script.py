@@ -1,47 +1,28 @@
 from pwn import *
-from string import printable
 
 def main():
-    r = remote("benchmark.challs.cyberchallenge.it", 9031)
-    r.recvuntil(b":")
-    dict = {}
+    # connect to the server
+    r = remote(b'software-17.challs.olicyber.it', 13000)
+    r.recvuntil(b'... Invia un qualsiasi carattere per iniziare ...')
+    r.sendline(b'x')
 
-    for _ in printable:
-        r.sendline(_)
-        ans = r.recvuntil(b"cycles").decode().split()
-        c = int(ans[4])
-        dict[_] = c
-        r.recvuntil(b":")
-        if _ == '~':
-            break
-    
-    flag = "CCIT{"
-    fcc = 1231
-    x = 1200
-    r.sendline(flag)
-    ans = r.recvuntil(b"cycles").decode().split()
-    r.recvuntil(b":")
-
-    while True:
-        for _ in printable:
-            temp = flag + str(_)
-            fcctemp = fcc + dict[_]
-            r.sendline(temp)
-            ans = r.recvuntil(b"cycles").decode().split()
-            tempcount = int(ans[4])
-            if tempcount - fcctemp == x:
-                flag = temp
-                print(flag)
-                fcc = fcctemp
-                x += 300
-                break
-            r.recvuntil(b":")
-
-
-        r.recvuntil(b":")
+    # receive the array of numbers
+    while(True):
+        r.recvuntil(b'\n')
+        data = r.recvuntil(b']')
+        r.recvuntil(b':')
+        # extract the numbers from the received data
+        nums = list(map(int, data.decode("UTF-8").split('[')[1].split(']')[0].split(',')))
         
+        # calculate the sum of the numbers
+        result = sum(nums)
+        result = str(result)
+
+        # send the result back to the server
+        r.sendline(result)
+
+    # close the connection
     r.close()
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
