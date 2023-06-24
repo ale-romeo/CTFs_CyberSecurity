@@ -1,31 +1,22 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-import pytesseract
-from PIL import Image
-import io
-import re
+from pwn import p8
 
 def main():
-    url1 = 'http://ctf.b01lers.com:5125/'
-    driver = webdriver.Firefox()
-    visited = set()
-    url = url1
-    
-    while True:
-        if url not in visited:
-            visited.add(url)
-            print('Crawling: ', url)
-            driver.get(url)
-            link = driver.find_element(By.TAG_NAME, 'span').text
-            if '.' in link:
-                ss = driver.get_screenshot_as_png()
-                im = Image.open(io.BytesIO(ss))
-                text = pytesseract.image_to_string(im, lang='eng')
-                print(text)
-                link = re.search('"(.*)’', text).group(1)
-            url = url1+link+'.html'
+    secret_command = p8(0x3f)
+    payload = secret_command+p8(0x00)+p8(0x00)
 
-    driver.quit()
+    '''rs = list()
+    start = 0x00
+    for _ in range(0, 64):
+        rs.append(p8(start))
+        start += 1
+
+    for _ in range(0, 32):
+        payload += copy+rs[_]+rs[_+32]'''
+
+    print(payload)
+
+    with open('program.bin', 'wb') as f:
+        f.write(payload)
 
 
 if __name__ == '__main__':
