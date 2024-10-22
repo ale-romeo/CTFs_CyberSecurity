@@ -26,8 +26,9 @@ def brute_force_rc4(ciphertext, key_length):
 
 def main():
     # Get the ciphertext and key length from the user
-    ciphertext = input('Enter the ciphertext in hexadecimal format: ')
-    ciphertext = bytes.fromhex(ciphertext)
+    ciphertext = input('Enter the ciphertext file: ')
+    with open(ciphertext, 'rb') as f:
+        ciphertext = f.read()
     key_length = int(input('Enter the key length: '))
 
     # Start brute-forcing with the specified key length
@@ -36,3 +37,6 @@ def main():
         print(f'Successfully found the key: {found_key}')
     else:
         print('Key not found.')
+
+if __name__ == '__main__':
+    main()
