@@ -1,6 +1,6 @@
 from Crypto.Cipher import ARC4
 import itertools
-import string
+import binascii
 
 def rc4_decrypt(ciphertext, key):
     # Create a new RC4 cipher object with the provided key
@@ -8,19 +8,20 @@ def rc4_decrypt(ciphertext, key):
     return cipher.decrypt(ciphertext)
 
 def brute_force_rc4(ciphertext, key_length):
-    # Define a charset for brute-forcing (adjust depending on your key structure)
-    charset = string.ascii_lowercase + string.ascii_uppercase + string.digits
+    # Define the charset for brute-forcing in hexadecimal (0-9, a-f)
+    charset = '0123456789abcdef'
     
-    # Generate all possible key combinations of the specified length
-    for key in itertools.product(charset, repeat=key_length):
-        key = ''.join(key).encode('utf-8')
-        decrypted_message = rc4_decrypt(ciphertext, key)
+    # Generate all possible hexadecimal key combinations of the specified length
+    for key in itertools.product(charset, repeat=key_length * 2):  # hex key is 2 chars per byte
+        key_hex = ''.join(key)
+        key_bytes = binascii.unhexlify(key_hex)  # Convert hex key to bytes
+        decrypted_message = rc4_decrypt(ciphertext, key_bytes)
         
-        # Check if the decrypted message makes sense (customize based on your knowledge)
-        if b'secret' in decrypted_message:  # Replace 'known_text' with actual expected plaintext
-            print(f'Found key: {key.decode("utf-8")}')
-            print(f'Decrypted message: {decrypted_message.decode("utf-8")}')
-            return key.decode('utf-8')
+        # Check if the decrypted message contains something recognizable
+        if b'secret area' in decrypted_message:  # Adjust this to match expected plaintext
+            print(f'Found key: {key_hex}')
+            print(f'Decrypted message: {decrypted_message.decode("utf-8", errors="ignore")}')
+            return key_hex
     
     return None
 
